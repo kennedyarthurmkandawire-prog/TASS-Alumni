@@ -93,11 +93,11 @@ function todayKey() {
 // BUILD INITIAL DATA
 // ───────────────────────────────────────────────────────
 const INITIAL_MEMBERS = [
-  'Isobel Howahowa','Wisdom Kanjaya','Yammie Umali','Wantwah Matemba','Zephaniah Lameck','Macmillan Majamanda','Ezron Chatsalira','Violet Linde',
-  'Takondwa Nyirenda','Bright Unyolo','Dorice Busani','Christopher Phiri','Benjamin Mwaungulu','Praise Manjomo','Nathaniel Maloya',
-  'Chisomo Mkamdawire','Chipiliro Sailesi','Patience Likhucha','Violet Linde','Beauty Msiska','Faith Gwetsani','Jacqueline Chandiyang\'ana',
-  'Jacqueline Butao','Peter Gwedeza','Emily Kumbani','Tawina Chipiko','Secret Seyani','Vianny Viano','Patricia Khumaki',
-  'Fortune Tembo','Kondwani Kapito','Kennedy Mkamdawire','Violet Linde','Louis Mhonie'
+  'Kennedy Mkamdawire','Bright Unyolo','Kondwani Kapito','Louis Mhonie','Isobel Howahowa','Zephaniah Lameck','Secret Seyani','Faith Gwetsani',
+  'Dorice Busani','Wantwah Matemba','Beauty Msiska','Takondwa Nyirenda','Yammie Umali','Fortune Tembo','Nathaniel Maloya',
+  'Mr Wisdom Kanjaya','Patricia Khumaki','Patience Likhucha','Jacqueline Butao','Ezron Chatsalira','Macmillan Majamanda','Christopher Phiri',
+  'Benjamin Mwaungulu','Praise Manjomo','Jacqueline Chandiyang\'ana','Violet Linde','Chipiliro Sailesi','Emily Kumbani',
+  'Chisomo Mkamdawire','Violet Linde','Vianny Viano','Violet Linde','Peter Gwedeza','Tawina Chipiko'
 ];
  
 function buildInitialData() {
@@ -117,22 +117,37 @@ function loadState() {
   try {
     const saved=localStorage.getItem('tass_data');
     const version=localStorage.getItem('tass_version');
-    if(saved && version==='2') {
+    if(saved && version==='3') {
+      // Current version — load normally
       const parsed=JSON.parse(saved);
-      // Migrate: if members array missing, pull from INITIAL_MEMBERS
       if(!parsed.members) parsed.members=[...INITIAL_MEMBERS];
-      // Ensure all generated months exist
       generateMonthKeys().forEach(mk=>{
         if(!parsed.months.includes(mk)) { parsed.months.push(mk); parsed.members.forEach((_,i)=>{ if(!parsed.payments[i]) parsed.payments[i]={}; parsed.payments[i][mk]=false; }); }
       });
       parsed.months.sort();
       state=parsed;
-    } else {
+    } else if(saved && version==='2') {
+      // Migrate from v2: keep payment data, load new full member names
+      const parsed=JSON.parse(saved);
+      const oldPayments=parsed.payments||{};
       state=buildInitialData();
-      localStorage.setItem('tass_version','2');
+      // Re-map payment records by position (old index i maps to new index i)
+      Object.keys(oldPayments).forEach(i=>{
+        if(state.payments[i]) {
+          Object.keys(oldPayments[i]).forEach(mk=>{
+            if(state.payments[i].hasOwnProperty(mk)) state.payments[i][mk]=oldPayments[i][mk];
+          });
+        }
+      });
+      localStorage.setItem('tass_version','3');
+      saveState();
+    } else {
+      // Fresh install
+      state=buildInitialData();
+      localStorage.setItem('tass_version','3');
       saveState();
     }
-  } catch(e) { state=buildInitialData(); localStorage.setItem('tass_version','2'); saveState(); }
+  } catch(e) { state=buildInitialData(); localStorage.setItem('tass_version','3'); saveState(); }
 }
 function saveState() { localStorage.setItem('tass_data',JSON.stringify(state)); }
  
