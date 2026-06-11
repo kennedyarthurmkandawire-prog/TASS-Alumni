@@ -96,7 +96,7 @@ const INITIAL_MEMBERS = [
   'Kennedy Mkamdawire','Bright Unyolo','Kondwani Kapito','Louis Mhonie','Isobel Howahowa','Zephaniah Lameck','Secret Seyani','Faith Gwetsani',
   'Dorice Busani','Wantwah Matemba','Beauty Msiska','Takondwa Nyirenda','Yammie Umali','Fortune Tembo','Nathaniel Maloya',
   'Mr Wisdom Kanjaya','Patricia Khumali','Patience Likhucha','Jacqueline Butao','Ezron Chatsalira','Macmillan Majamanda','Christopher Phiri',
-  'Benjamin Mwaungulu','Praise Manjomo','Jacqueline Chandiyang\'ana','Violet Linde','Chipiliro Sailesi','Emily Kumbani',
+  'Benjamin Mwaungulu','Praise Manjomo',"Jacqueline Chandiyang'ana",'Violet Linde','Chipiliro Sailesi','Emily Kumbani',
   'Chisomo Mkamdawire','Violet Linde','Vianny Viano','Peter Gwedeza','Tawina Chipiko','Kelvin Tembo',
   'Uchena Chinatu','Pemphero Chatepa','Blessings Nkhoma','Nikita Chengula'
 ];
@@ -117,7 +117,7 @@ function loadState() {
   try {
     const saved=localStorage.getItem('tass_data');
     const version=localStorage.getItem('tass_version');
-    if(saved && version==='3') {
+    if(saved && version==='4') {
       // Current version — load normally
       const parsed=JSON.parse(saved);
       if(!parsed.members) parsed.members=[...INITIAL_MEMBERS];
@@ -139,15 +139,15 @@ function loadState() {
           });
         }
       });
-      localStorage.setItem('tass_version','3');
+      localStorage.setItem('tass_version','4');
       saveState();
     } else {
       // Fresh install
       state=buildInitialData();
-      localStorage.setItem('tass_version','3');
+      localStorage.setItem('tass_version','4');
       saveState();
     }
-  } catch(e) { state=buildInitialData(); localStorage.setItem('tass_version','3'); saveState(); }
+  } catch(e) { state=buildInitialData(); localStorage.setItem('tass_version','4'); saveState(); }
 }
 function saveState() { localStorage.setItem('tass_data',JSON.stringify(state)); }
  
