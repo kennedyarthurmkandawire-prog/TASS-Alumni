@@ -95,11 +95,11 @@ function todayKey() {
 const INITIAL_MEMBERS = [
   'Kennedy Mkamdawire','Bright Unyolo','Kondwani Kapito','Louis Mhonie','Isobel Howahowa','Zephaniah Lameck','Secret Seyani','Faith Gwetsani',
   'Dorice Busani','Wantwah Matemba','Beauty Msiska','Takondwa Nyirenda','Yammie Umali','Fortune Tembo','Nathaniel Maloya',
-  'Mr Wisdom Kanjaya','Patricia Khumaki','Patience Likhucha','Jacqueline Butao','Ezron Chatsalira','Macmillan Majamanda','Christopher Phiri',
+  'Mr Wisdom Kanjaya','Patricia Khumali','Patience Likhucha','Jacqueline Butao','Ezron Chatsalira','Macmillan Majamanda','Christopher Phiri',
   'Benjamin Mwaungulu','Praise Manjomo','Jacqueline Chandiyang\'ana','Violet Linde','Chipiliro Sailesi','Emily Kumbani',
-  'Chisomo Mkamdawire','Violet Linde','Vianny Viano','Violet Linde','Peter Gwedeza','Tawina Chipiko'
+  'Chisomo Mkamdawire','Violet Linde','Vianny Viano','Peter Gwedeza','Tawina Chipiko','Kelvin Tembo',
+  'Uchena Chinatu','Pemphero Chatepa','Blessings Nkhoma','Nikita Chengula'
 ];
- 
 function buildInitialData() {
   const allMonths=generateMonthKeys();
   const members=[...INITIAL_MEMBERS];
@@ -648,7 +648,7 @@ async function downloadPDF() {
       checkPage(rowH + 0.5);
       const totalPaid    = state.months.filter(m => state.payments[i] && state.payments[i][m] && m <= tk).length;
       const isCurrentPaid = state.payments[i] && state.payments[i][mk];
-      const rowBg = isCurrentPaid ? '#f0fdf4' : '#fff5f5';
+      const rowBg = isCurrentPaid ? '#f0fdf4' : '#f0f6ff';
  
       fillRect(ml, y, cW, rowH, rowBg);
       // subtle row border
@@ -676,7 +676,7 @@ async function downloadPDF() {
           setFill('#16a34a'); pdf.roundedRect(bx, by, bSize, bSize, 0.8, 0.8, 'F');
           drawTick(bx, by, bSize, bSize, '#ffffff');
         } else {
-          setFill('#fee2e2'); setDraw('#fca5a5'); pdf.setLineWidth(0.15);
+          setFill('#dbeafe'); setDraw('#93c5fd'); pdf.setLineWidth(0.15);
           pdf.roundedRect(bx, by, bSize, bSize, 0.8, 0.8, 'FD');
         }
         rx += colMo;
