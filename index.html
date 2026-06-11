@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TASS Alumni Contribution Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body class="light">
+
+<!-- ===== HEADER ===== -->
+<header>
+  <div class="header-inner">
+    <div class="header-title">
+      <span class="logo">🎓</span>
+      <div>
+        <h1>TASS Alumni</h1>
+        <p class="subtitle">Contribution Tracker</p>
+      </div>
+    </div>
+    <div class="header-controls">
+      <button id="themeToggle" class="btn-icon" title="Toggle dark mode">🌙</button>
+      <button id="adminLoginBtn" class="btn-outline" onclick="openLoginModal()">🔐 Admin</button>
+      <div id="adminBanner" class="admin-banner hidden">
+        <span>🛡️ Admin Mode</span>
+        <span id="sessionInfo" class="session-info"></span>
+        <button onclick="logout()" class="btn-sm-danger">Logout</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== PAYMENT INFO BAR ===== -->
+<div class="payment-bar">
+  <span>💳 Pay via: <strong>Leah Chibwana</strong></span>
+  <span class="sep">|</span>
+  <span>📱 Airtel: <strong>0990 557 558</strong></span>
+  <span class="sep">|</span>
+  <span>📱 TNM: <strong>0888 122 690</strong></span>
+  <span class="sep">|</span>
+  <span>🏦 National Bank: <strong>1011811527</strong></span>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main>
+
+  <!-- Dashboard Cards -->
+  <section class="dashboard" id="dashboard"></section>
+
+  <!-- Filters -->
+  <section class="filters-bar">
+    <input type="text" id="searchInput" placeholder="🔍 Search member…" oninput="applyFilters()" />
+    <select id="monthFilter" onchange="applyFilters()">
+      <option value="">All Months</option>
+    </select>
+    <select id="statusFilter" onchange="applyFilters()">
+      <option value="">All Members</option>
+      <option value="paid">Paid</option>
+      <option value="unpaid">Unpaid</option>
+    </select>
+    <div class="filter-actions">
+      <button class="btn-outline" onclick="downloadPDF()">📄 PDF</button>
+      <button class="btn-outline" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </section>
+
+  <!-- Contribution Table -->
+  <section class="table-wrapper">
+    <table id="contribTable">
+      <thead><tr id="tableHeader"></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </section>
+
+  <!-- Monthly Summary -->
+  <section class="summary-section">
+    <h2>Monthly Summary</h2>
+    <div class="table-wrapper">
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Expected</th>
+            <th>Received</th>
+            <th>Outstanding</th>
+            <th>% Collected</th>
+          </tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Charts -->
+  <section class="charts-section">
+    <div class="chart-card">
+      <h3>Monthly Collection Trend</h3>
+      <canvas id="trendChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Payment Status (Current Month)</h3>
+      <canvas id="statusChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Admin Controls -->
+  <section id="adminControls" class="admin-controls hidden">
+    <h2>⚙️ Admin Controls</h2>
+    <div class="admin-btn-group">
+      <button class="btn-primary" onclick="openAddMemberModal()">👤 Add Member</button>
+      <button class="btn-primary" onclick="openAddMonthModal()">📅 Add Month</button>
+      <button class="btn-outline" onclick="exportJSON()">⬇️ Export Backup</button>
+      <label class="btn-outline" style="cursor:pointer;">
+        ⬆️ Import Backup
+        <input type="file" id="importFile" accept=".json" onchange="importJSON(event)" style="display:none" />
+      </label>
+    </div>
+    <p style="font-size:.75rem;color:var(--text-muted);margin-top:8px;">
+      💡 To rename or delete a member, use the ✏️ and 🗑️ buttons in the table rows above.
+    </p>
+  </section>
+
+</main>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>🔐 Admin Login</h2>
+    <p class="security-note">Session expires automatically when tab closes</p>
+    <div class="form-group">
+      <label>Password</label>
+      <div class="pw-wrapper">
+        <input type="password" id="loginPassword" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')attemptLogin()" />
+        <button class="btn-icon pw-eye" onclick="togglePwVisibility()">👁️</button>
+      </div>
+    </div>
+    <div id="loginError" class="error-msg hidden"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="attemptLogin()">Login</button>
+      <button class="btn-outline" onclick="closeLoginModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div id="addMemberModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>👤 Add New Member</h2>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="newMemberName" placeholder="Enter member name" onkeydown="if(event.key==='Enter')addMember()" />
+    </div>
+    <div id="addMemberError" class="error-msg hidden"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="addMember()">Add Member</button>
+      <button class="btn-outline" onclick="closeAddMemberModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Member Modal -->
+<div id="editMemberModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>✏️ Rename Member</h2>
+    <input type="hidden" id="editMemberIdx" />
+    <div class="form-group">
+      <label>New Name</label>
+      <input type="text" id="editMemberName" placeholder="Enter new name" onkeydown="if(event.key==='Enter')saveEditMember()" />
+    </div>
+    <div id="editMemberError" class="error-msg hidden"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveEditMember()">Save</button>
+      <button class="btn-outline" onclick="closeEditMemberModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Month Modal -->
+<div id="addMonthModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>📅 Add Month</h2>
+    <div class="form-group">
+      <label>Month</label>
+      <select id="newMonthMonth">
+        <option value="01">January</option><option value="02">February</option>
+        <option value="03">March</option><option value="04">April</option>
+        <option value="05">May</option><option value="06">June</option>
+        <option value="07">July</option><option value="08">August</option>
+        <option value="09">September</option><option value="10">October</option>
+        <option value="11">November</option><option value="12">December</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Year</label>
+      <select id="newMonthYear"></select>
+    </div>
+    <div id="addMonthError" class="error-msg hidden"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="addMonth()">Add</button>
+      <button class="btn-outline" onclick="closeAddMonthModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirmModal" class="modal-overlay hidden">
+  <div class="modal">
+    <h2 id="confirmTitle">Confirm</h2>
+    <p id="confirmMessage" style="line-height:1.5"></p>
+    <div class="modal-actions">
+      <button class="btn-primary" id="confirmOkBtn">Confirm</button>
+      <button class="btn-outline" onclick="closeConfirmModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
