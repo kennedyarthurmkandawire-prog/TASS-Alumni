@@ -1,12 +1,12 @@
 /* =====================================================
    TASS Alumni Contribution Tracker — script.js
    ===================================================== */
-
+ 
 // ───────────────────────────────────────────────────────
 // AUTH
 // ───────────────────────────────────────────────────────
 const authState = { failedAttempts:0, maxAttempts:5, lockoutMs:5*60*1000, lockedUntil:0, lockTimer:null, active:false };
-
+ 
 async function sha256hex(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -24,7 +24,7 @@ async function initAuth() {
 function isAdminActive() { return !!authState.active; }
 function createSession() { sessionStorage.setItem('tass_session','granted'); authState.active=true; authState.failedAttempts=0; authState.lockedUntil=0; }
 function destroySession() { sessionStorage.removeItem('tass_session'); authState.active=false; }
-
+ 
 async function attemptLogin() {
   if(Date.now()<authState.lockedUntil) return;
   const pw=document.getElementById('loginPassword').value;
@@ -61,12 +61,12 @@ function logout() {
   document.getElementById('adminControls').classList.add('hidden');
   render();
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // CONSTANTS & HELPERS
 // ───────────────────────────────────────────────────────
 const AMOUNT = 2000;
-
+ 
 function generateMonthKeys() {
   const months=[];
   for(let y=2026;y<=2028;y++){
@@ -88,7 +88,7 @@ function todayKey() {
   const d=new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // BUILD INITIAL DATA
 // ───────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ const INITIAL_MEMBERS = [
   'Jacqueline C','Kelvin','Emily','Tawina','Secret','Elida','Jacqueline B',
   'Precious','Kondwani','Kenedy','Thoko L','Luis'
 ];
-
+ 
 function buildInitialData() {
   const allMonths=generateMonthKeys();
   const members=[...INITIAL_MEMBERS];
@@ -107,12 +107,12 @@ function buildInitialData() {
   members.forEach((_,i)=>{ payments[i]={}; allMonths.forEach(mk=>{ payments[i][mk]=false; }); });
   return { months:allMonths, members, payments };
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // STATE
 // ───────────────────────────────────────────────────────
 let state = { months:[], members:[], payments:{} };
-
+ 
 function loadState() {
   try {
     const saved=localStorage.getItem('tass_data');
@@ -135,7 +135,7 @@ function loadState() {
   } catch(e) { state=buildInitialData(); localStorage.setItem('tass_version','2'); saveState(); }
 }
 function saveState() { localStorage.setItem('tass_data',JSON.stringify(state)); }
-
+ 
 // ───────────────────────────────────────────────────────
 // STATS
 // ───────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ function getMonthStats(mk) {
   const unpaid=total-paid;
   return { paid, unpaid, total, received:paid*AMOUNT, expected:total*AMOUNT, outstanding:unpaid*AMOUNT };
 }
-
+ 
 // Only count months up to and including today for overall stats
 function getOverallStats() {
   const tk=todayKey();
@@ -160,7 +160,7 @@ function getOverallStats() {
   });
   return { totalReceived, totalExpected, totalOutstanding:totalExpected-totalReceived };
 }
-
+ 
 // Current month = most members have paid (active months only, up to today)
 function currentMonth() {
   const tk=todayKey();
@@ -171,12 +171,12 @@ function currentMonth() {
   active.forEach(mk=>{ const p=getMonthStats(mk).paid; if(p>bestPaid){bestPaid=p;best=mk;} });
   return best;
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // FILTERS
 // ───────────────────────────────────────────────────────
 let filteredMonths=[], filteredMembers=[];
-
+ 
 function applyFilters() {
   const search=document.getElementById('searchInput').value.toLowerCase().trim();
   const monthF=document.getElementById('monthFilter').value;
@@ -189,12 +189,12 @@ function applyFilters() {
   });
   renderTable();
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // RENDER
 // ───────────────────────────────────────────────────────
 let trendChart=null, statusChart=null;
-
+ 
 function render() {
   populateMonthFilter();
   filteredMonths=[...state.months];
@@ -204,7 +204,7 @@ function render() {
   renderSummary();
   renderCharts();
 }
-
+ 
 function populateMonthFilter() {
   const sel=document.getElementById('monthFilter');
   const cur=sel.value;
@@ -212,7 +212,7 @@ function populateMonthFilter() {
   state.months.forEach(mk=>{ const o=document.createElement('option'); o.value=mk; o.textContent=monthLabelFull(mk); sel.appendChild(o); });
   if(cur) sel.value=cur;
 }
-
+ 
 function renderDashboard() {
   const mk=currentMonth();
   const s=getMonthStats(mk);
@@ -227,23 +227,23 @@ function renderDashboard() {
     <div class="card yellow"><div class="card-label">Total Outstanding</div><div class="card-value">MK ${(overall.totalOutstanding/1000).toFixed(1)}k</div><div class="card-sub">past & current months</div></div>
   `;
 }
-
+ 
 function renderTable() {
   const header=document.getElementById('tableHeader');
   const body=document.getElementById('tableBody');
   const admin=isAdminActive();
   const monthFilterVal=document.getElementById('monthFilter').value;
-
+ 
   // Default: show first 6 months (May 2026 onwards). If filter selected, show that month only.
   const displayMonths=monthFilterVal?[monthFilterVal]:filteredMonths.slice(0,6);
-
+ 
   // Header
   let hHtml=`<th>#</th><th>Member</th>`;
   displayMonths.forEach(mk=>{ hHtml+=`<th class="month-header">${monthLabel(mk)}</th>`; });
   hHtml+=`<th>Paid</th>`;
   if(admin) hHtml+=`<th>Actions</th>`;
   header.innerHTML=hHtml;
-
+ 
   // Rows
   body.innerHTML='';
   filteredMembers.forEach(({name,i})=>{
@@ -264,7 +264,7 @@ function renderTable() {
     tr.innerHTML=`<td><span class="member-num">${i+1}</span></td><td class="member-name">${name}</td>${cells}<td><strong>${totalPaid}</strong><span class="mk"> / ${state.months.length}</span></td>${actionBtns}`;
     body.appendChild(tr);
   });
-
+ 
   // Info row
   if(!monthFilterVal&&state.months.length>6) {
     const info=document.createElement('tr');
@@ -274,7 +274,7 @@ function renderTable() {
     body.appendChild(info);
   }
 }
-
+ 
 function renderSummary() {
   const body=document.getElementById('summaryBody');
   body.innerHTML='';
@@ -295,12 +295,12 @@ function renderSummary() {
     body.appendChild(tr);
   });
 }
-
+ 
 function renderCharts() {
   const tk=todayKey();
   // Only chart past+current months that have some data
   const chartMonths=state.months.filter(mk=>mk<=tk);
-
+ 
   const tCtx=document.getElementById('trendChart').getContext('2d');
   if(trendChart) trendChart.destroy();
   trendChart=new Chart(tCtx,{
@@ -316,7 +316,7 @@ function renderCharts() {
       plugins:{legend:{labels:{color:'#888'}}},
       scales:{x:{ticks:{color:'#888',maxRotation:45},grid:{display:false}},y:{ticks:{color:'#888',callback:v=>`MK ${(v/1000).toFixed(0)}k`},grid:{color:'rgba(128,128,128,.1)'}}}}
   });
-
+ 
   const mk=currentMonth();
   const s=getMonthStats(mk);
   const sCtx=document.getElementById('statusChart').getContext('2d');
@@ -328,7 +328,7 @@ function renderCharts() {
       plugins:{legend:{labels:{color:'#888'}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed} members`}}},cutout:'65%'}
   });
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // MEMBER MANAGEMENT (Admin only)
 // ───────────────────────────────────────────────────────
@@ -349,7 +349,7 @@ function addMember() {
   closeAddMemberModal();
   render();
 }
-
+ 
 function openEditMemberModal(idx) {
   if(!isAdminActive()) return;
   document.getElementById('editMemberIdx').value=idx;
@@ -359,7 +359,7 @@ function openEditMemberModal(idx) {
   setTimeout(()=>document.getElementById('editMemberName').focus(),50);
 }
 function closeEditMemberModal() { document.getElementById('editMemberModal').classList.add('hidden'); }
-
+ 
 function saveEditMember() {
   if(!isAdminActive()) return;
   const idx=parseInt(document.getElementById('editMemberIdx').value);
@@ -374,7 +374,7 @@ function saveEditMember() {
   closeEditMemberModal();
   render();
 }
-
+ 
 function deleteMember(idx) {
   if(!isAdminActive()) return;
   const name=state.members[idx];
@@ -393,7 +393,7 @@ function deleteMember(idx) {
     render();
   }, null);
 }
-
+ 
 function openAddMemberModal() {
   if(!isAdminActive()) return;
   document.getElementById('newMemberName').value='';
@@ -402,7 +402,7 @@ function openAddMemberModal() {
   setTimeout(()=>document.getElementById('newMemberName').focus(),50);
 }
 function closeAddMemberModal() { document.getElementById('addMemberModal').classList.add('hidden'); }
-
+ 
 // ───────────────────────────────────────────────────────
 // PAYMENT TOGGLE
 // ───────────────────────────────────────────────────────
@@ -415,7 +415,7 @@ function handleCheckboxChange(memberIdx,monthKey,checkbox) {
     ()=>{ checkbox.checked=!newVal; }
   );
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // MONTH MANAGEMENT
 // ───────────────────────────────────────────────────────
@@ -429,7 +429,7 @@ function addMonth() {
   state.members.forEach((_,i)=>{ if(!state.payments[i]) state.payments[i]={}; state.payments[i][key]=false; });
   saveState(); closeAddMonthModal(); render();
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // IMPORT / EXPORT
 // ───────────────────────────────────────────────────────
@@ -445,14 +445,14 @@ function importJSON(e) {
   reader.onload=ev=>{ try{ const p=JSON.parse(ev.target.result); if(!p.months||!p.payments) throw new Error(); state=p; saveState(); render(); alert('Import successful!'); } catch{ alert('Import failed: invalid format.'); } };
   reader.readAsText(file); e.target.value='';
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // MODALS
 // ───────────────────────────────────────────────────────
 function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); document.getElementById('loginPassword').value=''; document.getElementById('loginError').classList.add('hidden'); setTimeout(()=>document.getElementById('loginPassword').focus(),50); }
 function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
 function togglePwVisibility() { const i=document.getElementById('loginPassword'); i.type=i.type==='password'?'text':'password'; }
-
+ 
 function openAddMonthModal() {
   if(!isAdminActive()) return;
   document.getElementById('addMonthError').classList.add('hidden');
@@ -461,7 +461,7 @@ function openAddMonthModal() {
   document.getElementById('addMonthModal').classList.remove('hidden');
 }
 function closeAddMonthModal() { document.getElementById('addMonthModal').classList.add('hidden'); }
-
+ 
 let _confirmOk=null,_confirmCancel=null;
 function openConfirmModal(title,msg,onOk,onCancel) {
   document.getElementById('confirmTitle').textContent=title;
@@ -479,13 +479,13 @@ function closeConfirmModal() {
   const cb=_confirmCancel; _confirmOk=null; _confirmCancel=null;
   if(cb) cb();
 }
-
+ 
 document.querySelectorAll('.modal-overlay').forEach(overlay=>{
   overlay.addEventListener('click',e=>{
     if(e.target===overlay && overlay.id !== 'confirmModal') overlay.classList.add('hidden');
   });
 });
-
+ 
 // ───────────────────────────────────────────────────────
 // DARK MODE
 // ───────────────────────────────────────────────────────
@@ -500,213 +500,234 @@ document.getElementById('themeToggle').addEventListener('click',()=>{
   document.getElementById('themeToggle').textContent=next==='dark'?'☀️':'🌙';
   renderCharts();
 });
-
+ 
 async function downloadPDF() {
   const btn = document.querySelector('button[onclick="downloadPDF()"]');
   if (btn) { btn.textContent = '⏳ Generating…'; btn.disabled = true; }
-
+ 
   try {
     const { jsPDF } = window.jspdf;
-
+ 
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageW = pdf.internal.pageSize.getWidth();   // 210
     const pageH = pdf.internal.pageSize.getHeight();  // 297
-    const ml = 12, mr = 12, mt = 14;                 // margins
-    const cW = pageW - ml - mr;                       // content width ~186mm
+    const ml = 10, mr = 10, mt = 10;
+    const cW = pageW - ml - mr;                       // ~190mm
     let y = mt;
-
+ 
     // ── helpers ──────────────────────────────────────────
     function hexToRgb(hex) {
-      const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-      return [r,g,b];
+      return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
     }
-    function setFill(hex) { const [r,g,b]=hexToRgb(hex); pdf.setFillColor(r,g,b); }
-    function setDraw(hex) { const [r,g,b]=hexToRgb(hex); pdf.setDrawColor(r,g,b); }
-    function setTxt(hex)  { const [r,g,b]=hexToRgb(hex); pdf.setTextColor(r,g,b); }
-
+    function setFill(hex) { pdf.setFillColor(...hexToRgb(hex)); }
+    function setDraw(hex) { pdf.setDrawColor(...hexToRgb(hex)); }
+    function setTxt(hex)  { pdf.setTextColor(...hexToRgb(hex)); }
+ 
     function checkPage(needed) {
-      if (y + needed > pageH - 10) { pdf.addPage(); y = mt; }
+      if (y + needed > pageH - 12) { pdf.addPage(); y = mt; }
     }
-
-    function drawRect(x, iy, w, h, fillHex, strokeHex) {
-      if (fillHex) { setFill(fillHex); pdf.rect(x, iy, w, h, strokeHex ? 'FD' : 'F'); }
-      if (strokeHex && !fillHex) { setDraw(strokeHex); pdf.rect(x, iy, w, h, 'S'); }
+    function fillRect(x, iy, w, h, fillHex) {
+      setFill(fillHex); pdf.rect(x, iy, w, h, 'F');
     }
-
-    function text(str, x, iy, opts={}) {
+    function strokeRect(x, iy, w, h, strokeHex, lw=0.1) {
+      setDraw(strokeHex); pdf.setLineWidth(lw); pdf.rect(x, iy, w, h, 'S');
+    }
+    function txt(str, x, iy, opts={}) {
       setTxt(opts.color || '#0f172a');
       pdf.setFontSize(opts.size || 9);
       pdf.setFont('helvetica', opts.bold ? 'bold' : 'normal');
       pdf.text(String(str), x, iy, { align: opts.align || 'left', baseline: 'top' });
     }
-
-    // ── HEADER BANNER ────────────────────────────────────
-    drawRect(0, 0, pageW, 18, '#1e3a5f', null);
+ 
+    // Draw a proper tick mark using line segments (avoids Unicode glyph issues)
+    function drawTick(cx, cy, size, color) {
+      pdf.setDrawColor(...hexToRgb(color));
+      pdf.setLineWidth(size * 0.18);
+      // tick: short left leg down-right, long right leg up-right
+      const x0 = cx - size*0.35, y0 = cy + size*0.05;
+      const x1 = cx - size*0.05, y1 = cy + size*0.38;
+      const x2 = cx + size*0.42, y2 = cy - size*0.32;
+      pdf.lines([[x1-x0, y1-y0]], x0, y0, [1,1], 'S', false);
+      pdf.lines([[x2-x1, y2-y1]], x1, y1, [1,1], 'S', false);
+    }
+ 
+    // ── HEADER BANNER (compact: single row) ──────────────
+    const hdrH = 12;
+    fillRect(0, 0, pageW, hdrH, '#1e3a5f');
     setTxt('#ffffff');
-    pdf.setFontSize(13); pdf.setFont('helvetica','bold');
-    pdf.text('TASS Alumni Contribution Tracker', ml, 5, { baseline:'top' });
-    pdf.setFontSize(7); pdf.setFont('helvetica','normal');
+    pdf.setFontSize(11); pdf.setFont('helvetica','bold');
+    pdf.text('TASS Alumni Contribution Tracker', ml, 3.5, { baseline:'top' });
+    pdf.setFontSize(6.5); pdf.setFont('helvetica','normal');
     const now = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
-    pdf.text('Generated: ' + now, ml, 12, { baseline:'top' });
-    y = 22;
-
-    // ── PAYMENT INFO BAR ─────────────────────────────────
-    drawRect(ml, y, cW, 8, '#0f2d55', null);
+    pdf.text('Generated: ' + now, pageW - mr, 4.5, { align:'right', baseline:'top' });
+    y = hdrH + 2;
+ 
+    // ── PAYMENT INFO BAR (single line) ───────────────────
+    fillRect(ml, y, cW, 6, '#0f2d55');
     setTxt('#7dd3fc');
-    pdf.setFontSize(7); pdf.setFont('helvetica','bold');
-    pdf.text('Pay via: Leah Chibwana  |  Airtel: 0990 557 558  |  TNM: 0888 122 690  |  National Bank: 1011811527', ml+3, y+2.5, { baseline:'top' });
-    y += 11;
-
-    // ── DASHBOARD CARDS ──────────────────────────────────
+    pdf.setFontSize(6); pdf.setFont('helvetica','bold');
+    pdf.text('Pay via: Leah Chibwana  |  Airtel: 0990 557 558  |  TNM: 0888 122 690  |  National Bank: 1011811527', ml+3, y+1.5, { baseline:'top' });
+    y += 8;
+ 
+    // ── DASHBOARD CARDS (1 row of 6, compact) ────────────
     const mk = currentMonth();
     const s = getMonthStats(mk);
     const overall = getOverallStats();
     const pct = Math.round((s.paid / s.total) * 100);
-
+ 
     const cards = [
-      { label:'Total Members',              value:String(s.total),                              sub:'Active members',                                  color:'#2563eb' },
-      { label:`Paid (${monthLabel(mk)})`,   value:String(s.paid),                               sub:`${pct}% of members`,                              color:'#16a34a' },
-      { label:`Unpaid (${monthLabel(mk)})`, value:String(s.unpaid),                             sub:`MK ${s.outstanding.toLocaleString()} outstanding`, color:'#dc2626' },
-      { label:`Collected (${monthLabel(mk)})`, value:`MK ${s.received.toLocaleString()}`,       sub:`of MK ${s.expected.toLocaleString()} expected`,   color:'#16a34a' },
-      { label:'Total Collected',            value:`MK ${(overall.totalReceived/1000).toFixed(1)}k`, sub:'past & current months',                       color:'#2563eb' },
-      { label:'Total Outstanding',          value:`MK ${(overall.totalOutstanding/1000).toFixed(1)}k`, sub:'past & current months',                    color:'#d97706' },
+      { label:'Total Members',                 value:String(s.total),                                   sub:'Active members',                                  color:'#2563eb' },
+      { label:`Paid (${monthLabel(mk)})`,      value:String(s.paid),                                    sub:`${pct}% of members`,                              color:'#16a34a' },
+      { label:`Unpaid (${monthLabel(mk)})`,    value:String(s.unpaid),                                  sub:`MK ${s.outstanding.toLocaleString()} outstanding`, color:'#dc2626' },
+      { label:`Collected (${monthLabel(mk)})`, value:`MK ${s.received.toLocaleString()}`,               sub:`of MK ${s.expected.toLocaleString()} expected`,   color:'#16a34a' },
+      { label:'Total Collected',               value:`MK ${(overall.totalReceived/1000).toFixed(1)}k`,  sub:'past & current months',                           color:'#2563eb' },
+      { label:'Total Outstanding',             value:`MK ${(overall.totalOutstanding/1000).toFixed(1)}k`, sub:'past & current months',                         color:'#d97706' },
     ];
-
-    const cols = 3, cardW = (cW - (cols-1)*3) / cols, cardH = 18;
-    cards.forEach((c,idx) => {
-      const cx = ml + (idx % cols) * (cardW + 3);
-      const cy = y + Math.floor(idx / cols) * (cardH + 3);
-      drawRect(cx, cy, cardW, cardH, '#ffffff', '#e2e8f0');
-      text(c.label.toUpperCase(), cx+3, cy+2.5, { size:5.5, color:'#64748b', bold:true });
-      text(c.value, cx+3, cy+6.5, { size:11, color:c.color, bold:true });
-      text(c.sub, cx+3, cy+13.5, { size:5.5, color:'#64748b' });
+ 
+    const ncols = 6, gap = 2;
+    const cardW = (cW - gap*(ncols-1)) / ncols;
+    const cardH = 16;
+    cards.forEach((c, idx) => {
+      const cx = ml + idx * (cardW + gap);
+      fillRect(cx, y, cardW, cardH, '#ffffff');
+      strokeRect(cx, y, cardW, cardH, '#e2e8f0');
+      txt(c.label.toUpperCase(), cx+2, y+1.5,  { size:4.8, color:'#64748b', bold:true });
+      txt(c.value,               cx+2, y+5.5,  { size:9,   color:c.color,   bold:true });
+      txt(c.sub,                 cx+2, y+12.5, { size:4.5, color:'#64748b' });
     });
-    y += Math.ceil(cards.length / cols) * (cardH + 3) + 4;
-
+    y += cardH + 4;
+ 
     // ── MEMBER CONTRIBUTIONS TABLE ───────────────────────
-    checkPage(14);
-    text('MEMBER CONTRIBUTIONS', ml, y, { size:8, bold:true, color:'#1e3a5f' });
-    y += 5;
-
+    txt('MEMBER CONTRIBUTIONS', ml, y, { size:7.5, bold:true, color:'#1e3a5f' });
+    y += 4;
+ 
     const months6 = state.months.slice(0,6);
-    // Column widths: # | Member | 6 months | Paid
-    const colNum  = 8;
-    const colPaid = 14;
-    const colMo   = 16;
-    const colName = cW - colNum - colPaid - (months6.length * colMo);
-
-    // Table header
-    const thH = 7;
-    checkPage(thH + 2);
-    drawRect(ml, y, cW, thH, '#f1f5f9', '#cbd5e1');
-    setDraw('#cbd5e1'); pdf.setLineWidth(0.1);
-    pdf.line(ml, y+thH, ml+cW, y+thH);
+    // Only count months up to & including today for the PAID denominator
+    const tk = todayKey();
+    const pastMonthCount = state.months.filter(m => m <= tk).length;
+ 
+    const colNum  = 7;
+    const colPaid = 16;
+    const colMo   = (cW - colNum - colPaid) / months6.length;  // evenly distribute
+    const colName = cW - colNum - colPaid - colMo * months6.length;
+ 
+    // Recalculate: name gets whatever remains after fixed cols
+    const colNameW = cW - colNum - colPaid - colMo * months6.length;
+ 
+    const thH = 6;
+    const rowH = 5.8;
+ 
+    // Header
+    checkPage(thH + rowH * 3);
+    fillRect(ml, y, cW, thH, '#1e3a5f');
     let cx = ml;
-    [['#', colNum, 'left'], ['MEMBER', colName, 'left'], ...months6.map(m=>[monthLabel(m).toUpperCase(), colMo, 'center']), ['PAID', colPaid, 'center']]
-      .forEach(([lbl, w, align]) => {
-        text(lbl, align==='center' ? cx+w/2 : cx+2, y+1.5, { size:6, color:'#64748b', bold:true, align });
-        cx += w;
-      });
+    const hdrCols = [['#', colNum, 'left'], ['MEMBER', colNameW, 'left'],
+                     ...months6.map(m => [monthLabel(m).toUpperCase(), colMo, 'center']),
+                     ['PAID', colPaid, 'center']];
+    hdrCols.forEach(([lbl, w, align]) => {
+      txt(lbl, align==='center' ? cx+w/2 : cx+2, y+1.2, { size:5.5, color:'#ffffff', bold:true, align });
+      cx += w;
+    });
     y += thH;
-
-    // Table rows
-    const rowH = 6.5;
+ 
+    // Rows
     state.members.forEach((name, i) => {
-      checkPage(rowH + 1);
-      const totalPaid = state.months.filter(m => state.payments[i] && state.payments[i][m]).length;
+      checkPage(rowH + 0.5);
+      const totalPaid    = state.months.filter(m => state.payments[i] && state.payments[i][m] && m <= tk).length;
       const isCurrentPaid = state.payments[i] && state.payments[i][mk];
       const rowBg = isCurrentPaid ? '#f0fdf4' : '#fff5f5';
-      drawRect(ml, y, cW, rowH, rowBg, '#e2e8f0');
-      pdf.setLineWidth(0.1); setDraw('#e2e8f0');
-      pdf.line(ml, y+rowH, ml+cW, y+rowH);
-
+ 
+      fillRect(ml, y, cW, rowH, rowBg);
+      // subtle row border
+      setDraw('#e2e8f0'); pdf.setLineWidth(0.08); pdf.line(ml, y+rowH, ml+cW, y+rowH);
+ 
       let rx = ml;
       // #
-      text(String(i+1), rx+2, y+1.5, { size:7, color:'#94a3b8' }); rx += colNum;
+      txt(String(i+1), rx+1.5, y+1.2, { size:6.5, color:'#94a3b8' }); rx += colNum;
       // Name
-      text(name, rx+2, y+1.5, { size:7.5, bold:true, color:'#0f172a' }); rx += colName;
-      // Month checkmarks
+      txt(name, rx+1.5, y+1.2, { size:7, bold:true, color:'#0f172a' }); rx += colNameW;
+      // Month indicators
       months6.forEach(m => {
         const paid = state.payments[i] && state.payments[i][m];
+        const bSize = 4.2;
+        const bx = rx + colMo/2 - bSize/2;
+        const by = y + rowH/2 - bSize/2;
         if (paid) {
-          setFill('#16a34a'); pdf.roundedRect(rx + colMo/2 - 3, y+1, 6, 5, 1, 1, 'F');
-          setTxt('#ffffff'); pdf.setFontSize(7); pdf.setFont('helvetica','bold');
-          pdf.text('✓', rx + colMo/2, y+2, { align:'center', baseline:'top' });
+          setFill('#16a34a'); pdf.roundedRect(bx, by, bSize, bSize, 0.8, 0.8, 'F');
+          drawTick(bx + bSize/2, by + bSize/2, bSize, '#ffffff');
         } else {
-          setFill('#fee2e2'); setDraw('#fca5a5'); pdf.setLineWidth(0.2);
-          pdf.roundedRect(rx + colMo/2 - 3, y+1, 6, 5, 1, 1, 'FD');
+          setFill('#fee2e2'); setDraw('#fca5a5'); pdf.setLineWidth(0.15);
+          pdf.roundedRect(bx, by, bSize, bSize, 0.8, 0.8, 'FD');
         }
         rx += colMo;
       });
-      // Paid count
-      setTxt('#0f172a'); pdf.setFontSize(7.5); pdf.setFont('helvetica','bold');
-      pdf.text(`${totalPaid}`, rx + colPaid/2 - 2, y+1.5, { baseline:'top' });
-      setTxt('#94a3b8'); pdf.setFontSize(6); pdf.setFont('helvetica','normal');
-      pdf.text(`/${state.months.length}`, rx + colPaid/2 + 1, y+2, { baseline:'top' });
+      // PAID count — denominator = past months only, not all future months
+      const paidStr = String(totalPaid);
+      const denomStr = `/${pastMonthCount}`;
+      const midX = rx + colPaid/2;
+      const paidW = pdf.getStringUnitWidth(paidStr) * 7.5 / pdf.internal.scaleFactor;
+      txt(paidStr,  midX - paidW/2 - 1, y+1.2, { size:7.5, bold:true,  color:'#0f172a' });
+      txt(denomStr, midX - paidW/2 - 1 + paidW + 0.3, y+1.6, { size:5.5, color:'#94a3b8' });
       y += rowH;
     });
-    y += 6;
-
-    // ── MONTHLY SUMMARY TABLE ────────────────────────────
-    checkPage(14);
-    text('MONTHLY SUMMARY', ml, y, { size:8, bold:true, color:'#1e3a5f' });
     y += 5;
-
+ 
+    // ── MONTHLY SUMMARY TABLE ────────────────────────────
+    checkPage(thH + rowH * 3 + 6);
+    txt('MONTHLY SUMMARY', ml, y, { size:7.5, bold:true, color:'#1e3a5f' });
+    y += 4;
+ 
     const smCols = [
-      { label:'MONTH',       w: cW*0.30, align:'left'  },
+      { label:'MONTH',       w: cW*0.28, align:'left'  },
       { label:'EXPECTED',    w: cW*0.18, align:'right' },
       { label:'RECEIVED',    w: cW*0.18, align:'right' },
-      { label:'OUTSTANDING', w: cW*0.18, align:'right' },
+      { label:'OUTSTANDING', w: cW*0.20, align:'right' },
       { label:'% COLLECTED', w: cW*0.16, align:'right' },
     ];
-
-    checkPage(thH + 2);
-    drawRect(ml, y, cW, thH, '#f1f5f9', '#cbd5e1');
-    pdf.setLineWidth(0.1); setDraw('#cbd5e1'); pdf.line(ml, y+thH, ml+cW, y+thH);
+ 
+    fillRect(ml, y, cW, thH, '#1e3a5f');
     let scx = ml;
     smCols.forEach(c => {
-      text(c.label, c.align==='right' ? scx+c.w-2 : scx+2, y+1.5, { size:6, color:'#64748b', bold:true, align:c.align });
+      txt(c.label, c.align==='right' ? scx+c.w-2 : scx+2, y+1.2, { size:5.5, color:'#ffffff', bold:true, align:c.align });
       scx += c.w;
     });
     y += thH;
-
-    const tk = todayKey();
+ 
     state.months.forEach(m => {
-      checkPage(rowH + 1);
+      checkPage(rowH + 0.5);
       const st = getMonthStats(m);
-      const p = Math.round((st.received / st.expected) * 100);
+      const p  = Math.round((st.received / st.expected) * 100);
       const isFuture = m > tk;
-      const rowColor = isFuture ? '#ffffff' : '#ffffff';
-      drawRect(ml, y, cW, rowH, rowColor, '#e2e8f0');
-      pdf.setLineWidth(0.1); setDraw('#e2e8f0'); pdf.line(ml, y+rowH, ml+cW, y+rowH);
-
-      const pctColor = p>=80?'#16a34a':p>=40?'#d97706':'#dc2626';
-      const textAlpha = isFuture ? '#94a3b8' : '#0f172a';
+      const rowBg2 = isFuture ? '#f8fafc' : '#ffffff';
+      fillRect(ml, y, cW, rowH, rowBg2);
+      setDraw('#e2e8f0'); pdf.setLineWidth(0.08); pdf.line(ml, y+rowH, ml+cW, y+rowH);
+ 
+      const pctColor  = p>=80?'#16a34a':p>=40?'#d97706':'#dc2626';
+      const muteColor = '#94a3b8';
       let sx = ml;
       smCols.forEach((c, ci) => {
         let val, col;
-        if(ci===0){ val = monthLabelFull(m)+(isFuture?' (upcoming)':''); col = textAlpha; }
-        else if(ci===1){ val = `MK ${st.expected.toLocaleString()}`; col = textAlpha; }
-        else if(ci===2){ val = `MK ${st.received.toLocaleString()}`; col = isFuture?'#94a3b8':'#16a34a'; }
-        else if(ci===3){ val = `MK ${st.outstanding.toLocaleString()}`; col = isFuture?'#94a3b8':'#dc2626'; }
-        else { val = `${p}%`; col = isFuture?'#94a3b8':pctColor; }
-        text(val, c.align==='right' ? sx+c.w-2 : sx+2, y+1.5, { size:6.5, color:col, bold:ci===4, align:c.align });
+        if(ci===0){ val = monthLabelFull(m)+(isFuture?' (upcoming)':''); col = isFuture?muteColor:'#0f172a'; }
+        else if(ci===1){ val = `MK ${st.expected.toLocaleString()}`;    col = isFuture?muteColor:'#0f172a'; }
+        else if(ci===2){ val = `MK ${st.received.toLocaleString()}`;    col = isFuture?muteColor:'#16a34a'; }
+        else if(ci===3){ val = `MK ${st.outstanding.toLocaleString()}`; col = isFuture?muteColor:'#dc2626'; }
+        else           { val = `${p}%`;                                  col = isFuture?muteColor:pctColor;  }
+        txt(val, c.align==='right' ? sx+c.w-2 : sx+2, y+1.2, { size:6, color:col, bold:ci===4&&!isFuture, align:c.align });
         sx += c.w;
       });
       y += rowH;
     });
-
-    // ── FOOTER on each page ──────────────────────────────
+ 
+    // ── FOOTER on every page ──────────────────────────────
     const totalPages = pdf.internal.getNumberOfPages();
     for(let pg=1; pg<=totalPages; pg++){
       pdf.setPage(pg);
-      setTxt('#94a3b8'); pdf.setFontSize(6); pdf.setFont('helvetica','normal');
-      pdf.text(`TASS Alumni Contribution Tracker  |  Page ${pg} of ${totalPages}`, pageW/2, pageH-5, { align:'center', baseline:'top' });
+      setTxt('#94a3b8'); pdf.setFontSize(5.5); pdf.setFont('helvetica','normal');
+      pdf.text(`TASS Alumni Contribution Tracker  |  Page ${pg} of ${totalPages}`, pageW/2, pageH-4, { align:'center', baseline:'top' });
     }
-
-    const dateStr = new Date().toISOString().slice(0,10);
-    pdf.save(`TASS_Contributions_${dateStr}.pdf`);
-
+ 
+    pdf.save(`TASS_Contributions_${new Date().toISOString().slice(0,10)}.pdf`);
+ 
   } catch(err) {
     console.error('PDF generation failed:', err);
     alert('PDF generation failed. Please try again.');
@@ -715,7 +736,7 @@ async function downloadPDF() {
     if (btn) { btn.textContent = '📄 PDF'; btn.disabled = false; }
   }
 }
-
+ 
 // ───────────────────────────────────────────────────────
 // INIT
 // ───────────────────────────────────────────────────────
