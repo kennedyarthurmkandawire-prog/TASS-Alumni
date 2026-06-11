@@ -93,11 +93,11 @@ function todayKey() {
 // BUILD INITIAL DATA
 // ───────────────────────────────────────────────────────
 const INITIAL_MEMBERS = [
-  'Isobel','Wisdom','Yamikani','Wantwa','Zepha','Mac','Ezron','Violet L',
-  'Takondwa N','Bright','Memory','Nikita','Chatepa','Happy','Nathaniel',
-  'Chisomo','Pile','Patience','Violet G','Beauty','Faith','Priscillah',
-  'Jacqueline C','Kelvin','Emily','Tawina','Secret','Elida','Jacqueline B',
-  'Precious','Kondwani','Kenedy','Thoko L','Luis'
+  'Isobel Howahowa','Wisdom Kanjaya','Yammie Umali','Wantwah Matemba','Zephaniah Lameck','Macmillan Majamanda','Ezron Chatsalira','Violet Linde',
+  'Takondwa Nyirenda','Bright Unyolo','Dorice Busani','Christopher Phiri','Benjamin Mwaungulu','Praise Manjomo','Nathaniel Maloya',
+  'Chisomo Mkamdawire','Chipiliro Sailesi','Patience Likhucha','Violet Linde','Beauty Msiska','Faith Gwetsani','Jacqueline Chandiyang\'ana',
+  'Jacqueline Butao','Peter Gwedeza','Emily Kumbani','Tawina Chipiko','Secret Seyani','Vianny Viano','Patricia Khumaki',
+  'Fortune Tembo','Kondwani Kapito','Kennedy Mkamdawire','Violet Linde','Louis Mhonie'
 ];
  
 function buildInitialData() {
